@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon
 
 // DB represents a talon connection to a Neo4j database using Neo4j bolt behind

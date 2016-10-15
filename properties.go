@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon
 
 import "bytes"
@@ -9,6 +11,10 @@ type Properties map[string]interface{}
 // String brings Properties inline with fmt.Stringer and produced a Neo4j
 // compatible propety map
 func (p Properties) String() string {
+	if len(p) == 0 {
+		return ""
+	}
+
 	buf := new(bytes.Buffer)
 
 	buf.WriteRune('{')

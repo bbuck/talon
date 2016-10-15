@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon
 
 // NeoMarshaler defines functions that would turn a Go type into a valid neo
