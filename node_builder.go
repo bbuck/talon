@@ -5,8 +5,9 @@ package talon
 import "bytes"
 
 type NodeBuilder struct {
-	name   string
-	labels Labels
+	Name       string
+	Labels     Labels
+	Properties Properties
 }
 
 // Node returns an empty NodeBuilder object ready to build a node used in a
@@ -17,7 +18,7 @@ func Node() *NodeBuilder {
 
 // Named assigns a name to the NodeBuilder object.
 func (n *NodeBuilder) Named(name string) *NodeBuilder {
-	n.name = name
+	n.Name = name
 
 	return n
 }
@@ -25,7 +26,7 @@ func (n *NodeBuilder) Named(name string) *NodeBuilder {
 // Labeled applies a label or list of labels to the Node.
 func (n *NodeBuilder) Labeled(lbls ...string) *NodeBuilder {
 	for _, lbl := range lbls {
-		n.labels = append(n.labels, lbl)
+		n.Labels = append(n.Labels, lbl)
 	}
 
 	return n
@@ -35,11 +36,15 @@ func (n *NodeBuilder) Labeled(lbls ...string) *NodeBuilder {
 func (n *NodeBuilder) String() string {
 	buf := new(bytes.Buffer)
 	buf.WriteRune('(')
-	if n.name != "" {
-		buf.WriteString(n.name)
+	if n.Name != "" {
+		buf.WriteString(n.Name)
 	}
-	if len(n.labels) > 0 {
-		buf.WriteString(n.labels.String())
+	if len(n.Labels) > 0 {
+		buf.WriteString(n.Labels.String())
+	}
+	if pstr := n.Properties.String(); pstr != "" {
+		buf.WriteRune(' ')
+		buf.WriteString(pstr)
 	}
 	buf.WriteRune(')')
 
