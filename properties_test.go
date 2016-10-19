@@ -21,13 +21,37 @@ var _ = Describe("Properties", func() {
 			})
 		})
 
-		Context("with a single string property", func() {
+		Context("with a single property", func() {
 			BeforeEach(func() {
 				p["one"] = "two"
 			})
 
-			It("is a key value pairing", func() {
-				Ω(p.String()).Should(Equal(`{one: "two"}`))
+			It("is a key-insertion pairing", func() {
+				Ω(p.String()).Should(Equal(`{one: {one}}`))
+			})
+		})
+
+		Context("with more than one property", func() {
+			BeforeEach(func() {
+				p["one"] = "two"
+				p["three"] = "four"
+			})
+
+			It("is a key-insertion pairing", func() {
+				Ω(p.String()).Should(Equal(`{one: {one}, three: {three}}`))
+			})
+		})
+
+		Context("with conflicting keys during merge", func() {
+			BeforeEach(func() {
+				b := make(Properties)
+				b["one"] = "three"
+				p["one"] = "two"
+				p = MergeProperties(p, b)
+			})
+
+			It("is a key-insertion pairing", func() {
+				Ω(p.String()).Should(Equal(`{one: {one}, one: {one$$ref1}}`))
 			})
 		})
 	})
