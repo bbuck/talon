@@ -2,23 +2,38 @@ package talon
 
 import "time"
 
-const timeFormat = time.RFC3339
+const DefaultTimeFormat = time.RFC3339Nano
 
 type Time struct {
 	time.Time
+	OutputFormat string
+}
+
+func NewTime(t time.Time) Time {
+	return Time{
+		Time:         t,
+		OutputFormat: DefaultTimeFormat,
+	}
+}
+
+func NewTimeWithFormat(t time.Time, f string) Time {
+	tt := NewTime(t)
+	tt.OutputFormat = f
+
+	return tt
 }
 
 func (t Time) MarshalTalon() ([]byte, error) {
-	tstr := t.Format(timeFormat)
+	tstr := t.Format(t.OutputFormat)
 
 	return []byte(tstr), nil
 }
 
 func (t *Time) UnmarshalTalon(bs []byte) error {
 	str := string(bs)
-	pt, err := time.Parse(timeFormat, str)
+	pt, err := time.Parse(t.OutputFormat, str)
 	if err == nil {
-		*t = Time{pt}
+		t.Time = pt
 	}
 
 	return err

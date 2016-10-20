@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"strings"
 	"time"
 )
 
-const divider = "$$ref"
+const divider = "$$"
 
 // Properties is a map[string]interface{} wrapper with a special string function
 // designed to produce properties for Neo4j.
@@ -20,6 +19,14 @@ type Properties map[string]interface{}
 // String brings Properties inline with fmt.Stringer and produced a Neo4j
 // compatible propety map
 func (p Properties) String() string {
+	return p.StringWithPostfixedProperties("")
+}
+
+// StringWithPostfixedProperties returns the same property string as String
+// except that all inject property names include the divider ($$) and a postfix
+// value. This aids in sorting duplicates. So a node named 'A' would produce
+// a key of 'one' as 'one$$node_a'.
+func (p Properties) StringWithPostfixedProperties(postfix string) string {
 	if len(p) == 0 {
 		return ""
 	}
@@ -29,14 +36,13 @@ func (p Properties) String() string {
 	buf.WriteRune('{')
 	keys := p.Keys()
 	for i, key := range keys {
-		propKey := key
-		if strings.Contains(key, divider) {
-			keyParts := strings.Split(key, divider)
-			key = keyParts[0]
-		}
 		buf.WriteString(key)
 		buf.WriteString(": {")
-		buf.WriteString(propKey)
+		buf.WriteString(key)
+		if len(postfix) > 0 {
+			buf.WriteString(divider)
+			buf.WriteString(postfix)
+		}
 		buf.WriteRune('}')
 		if i != len(keys)-1 {
 			buf.WriteString(", ")
@@ -45,6 +51,22 @@ func (p Properties) String() string {
 	buf.WriteRune('}')
 
 	return buf.String()
+}
+
+// ForQuery returns the same key/value pairs just with a postfix applied to the
+// keys as specificed. This is used when building strings and passing data
+// through the driver to prevent property collisions throughout the query.
+func (p Properties) ForQuery(postfix string) Properties {
+	qprops := make(map[string]interface{})
+	for key, val := range p {
+		newKey := key
+		if len(postfix) > 0 {
+			newKey = key + divider + postfix
+		}
+		qprops[newKey] = marshalTalonValue(val)
+	}
+
+	return qprops
 }
 
 // Keys returns an array of string values representing the keys in the map.
@@ -60,41 +82,39 @@ func (p Properties) Keys() []string {
 	return keys
 }
 
-// MergeProperties will merge a and b property maps, does not alter either input
-// maps.
-func MergeProperties(old, new Properties) Properties {
+// Merge merges the current Properties key/value pairs with those of the given
+// Properties object. This does not modify the current or other input objects
+// it instead returns a new Property map representing the merged properties.
+func (p Properties) Merge(other Properties) Properties {
 	props := make(Properties)
-	for key, val := range old {
+	for key, val := range p {
 		props[key] = val
 	}
 
-	for key, val := range new {
-		if _, ok := props[key]; ok {
-			for i := 1; true; i++ {
-				newKey := fmt.Sprintf("%s$$ref%d", key, i)
-				if _, ok := props[newKey]; !ok {
-					key = newKey
-					break
-				}
-			}
-		}
+	for key, val := range other {
 		props[key] = val
 	}
 
 	return props
 }
 
-func ifaceToNeoPropertyString(i interface{}) (string, error) {
-	return valueNeoPropertyValueString(reflect.ValueOf(i))
-}
-
-func valueNeoPropertyValueString(val reflect.Value) (string, error) {
-	if t, ok := val.Interface().(time.Time); ok {
-		nt := Time{t}
-		bs, _ := nt.MarshalTalon()
-
-		return string(bs), nil
+func marshalTalonValue(i interface{}) interface{} {
+	val := reflect.ValueOf(i)
+	switch val.Kind() {
+	case reflect.Complex64, reflect.Complex128:
+		c128 := val.Complex()
+		return fmt.Sprintf("%f+%fi", real(c128), imag(c128))
 	}
 
-	return "", nil
+	if t, ok := i.(time.Time); ok {
+		tt := NewTime(t)
+		bs, err := tt.MarshalTalon()
+		if err != nil {
+			return ""
+		}
+
+		return string(bs)
+	}
+
+	return i
 }
