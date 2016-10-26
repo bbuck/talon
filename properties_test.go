@@ -4,6 +4,7 @@ import (
 	"time"
 
 	. "github.com/bbuck/talon"
+	"github.com/bbuck/talon/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -136,7 +137,7 @@ var _ = Describe("Properties", func() {
 		Context("with marshaled types", func() {
 			var (
 				t      = time.Now()
-				ft     = t.Format(DefaultTimeFormat)
+				ft     = t.Format(types.DefaultTimeFormat)
 				typeOk bool
 			)
 

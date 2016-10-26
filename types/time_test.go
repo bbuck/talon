@@ -1,4 +1,6 @@
-package talon_test
+// Copyright (c) 2016 Brandon Buck
+
+package types_test
 
 import (
 	"time"

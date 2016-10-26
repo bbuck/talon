@@ -1,6 +1,6 @@
 // Copyright (c) 2016 Brandon Buck
 
-package talon
+package types
 
 // Marshaler represents a type that can turn itself into a string representation
 // suitable for use with Talon query building.

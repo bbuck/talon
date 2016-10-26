@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"sort"
 	"time"
+
+	"github.com/bbuck/talon/types"
 )
 
 const divider = "$$"
@@ -107,7 +109,7 @@ func marshalTalonValue(i interface{}) interface{} {
 	}
 
 	if t, ok := i.(time.Time); ok {
-		tt := NewTime(t)
+		tt := types.NewTime(t)
 		bs, err := tt.MarshalTalon()
 		if err != nil {
 			return ""
