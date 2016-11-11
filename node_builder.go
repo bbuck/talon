@@ -2,12 +2,16 @@
 
 package talon
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/bbuck/talon/types"
+)
 
 type NodeBuilder struct {
 	Name       string
 	Labels     Labels
-	Properties Properties
+	Properties types.Properties
 }
 
 // Node returns an empty NodeBuilder object ready to build a node used in a

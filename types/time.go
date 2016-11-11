@@ -4,7 +4,10 @@ package types
 
 import "time"
 
-const DefaultTimeFormat = time.RFC3339Nano
+// DefaultTimeFormat is set to RFC3339 (predefined format) for use in storing
+// retreiving dates. This is a profile of IOS 8601 date transfer formats and
+// should be a widely supported format.
+const DefaultTimeFormat = time.RFC3339
 
 // Time wraps the standard lib time.Time to provide marshaling capability with
 // the Talon ORM. This includes a format string for the time.
@@ -13,11 +16,26 @@ type Time struct {
 	OutputFormat string
 }
 
+// EmptyTime returns a time object with time value, useful for unmarshaling.
+func EmptyTime() Time {
+	return Time{
+		OutputFormat: DefaultTimeFormat,
+	}
+}
+
 // NewTime wraps the given time.Time in a talon Time object.
 func NewTime(t time.Time) Time {
 	return Time{
 		Time:         t,
 		OutputFormat: DefaultTimeFormat,
+	}
+}
+
+// EmptyTimeWithFormat returns a new time with the format specified, usefule for
+// unmarshaling.
+func EmptyTimeWithFormat(f string) Time {
+	return Time{
+		OutputFormat: f,
 	}
 }
 

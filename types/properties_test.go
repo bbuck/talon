@@ -1,10 +1,9 @@
-package talon_test
+package types_test
 
 import (
 	"time"
 
-	. "github.com/bbuck/talon"
-	"github.com/bbuck/talon/types"
+	. "github.com/bbuck/talon/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -106,6 +105,7 @@ var _ = Describe("Properties", func() {
 	Describe("ForQuery", func() {
 		var (
 			pfed         Properties
+			err          error
 			postfix      = "node_a"
 			val          string
 			newOk, oldOk bool
@@ -114,11 +114,15 @@ var _ = Describe("Properties", func() {
 		Context("basic use", func() {
 			BeforeEach(func() {
 				p["one"] = "two"
-				pfed = p.ForQuery(postfix)
+				pfed, err = p.ForQuery(postfix)
 				var ival interface{}
 				ival, newOk = pfed["one$$node_a"]
 				val = ival.(string)
 				_, oldOk = pfed["one"]
+			})
+
+			It("does not fail", func() {
+				Ω(err).Should(BeNil())
 			})
 
 			It("adds postfix to property names", func() {
@@ -137,16 +141,21 @@ var _ = Describe("Properties", func() {
 		Context("with marshaled types", func() {
 			var (
 				t      = time.Now()
-				ft     = t.Format(types.DefaultTimeFormat)
+				ft     = t.Format(DefaultTimeFormat)
 				typeOk bool
+				err    error
 			)
 
 			BeforeEach(func() {
 				p["time"] = t
-				pfed = p.ForQuery(postfix)
+				pfed, err = p.ForQuery(postfix)
 				var ival interface{}
 				ival, newOk = pfed["time$$node_a"]
 				val, typeOk = ival.(string)
+			})
+
+			It("does not fail", func() {
+				Ω(err).Should(BeNil())
 			})
 
 			It("adds postfix to the key", func() {

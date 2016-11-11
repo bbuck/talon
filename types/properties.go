@@ -1,15 +1,12 @@
 // Copyright (c) 2016 Brandon Buck
 
-package talon
+package types
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"sort"
 	"time"
-
-	"github.com/bbuck/talon/types"
 )
 
 const divider = "$$"
@@ -58,17 +55,21 @@ func (p Properties) StringWithPostfixedProperties(postfix string) string {
 // ForQuery returns the same key/value pairs just with a postfix applied to the
 // keys as specificed. This is used when building strings and passing data
 // through the driver to prevent property collisions throughout the query.
-func (p Properties) ForQuery(postfix string) Properties {
+func (p Properties) ForQuery(postfix string) (Properties, error) {
 	qprops := make(map[string]interface{})
 	for key, val := range p {
 		newKey := key
 		if len(postfix) > 0 {
 			newKey = key + divider + postfix
 		}
-		qprops[newKey] = marshalTalonValue(val)
+		val, err := marshalTalonValue(val)
+		if err != nil {
+			return nil, err
+		}
+		qprops[newKey] = val
 	}
 
-	return qprops
+	return qprops, nil
 }
 
 // Keys returns an array of string values representing the keys in the map.
@@ -100,23 +101,38 @@ func (p Properties) Merge(other Properties) Properties {
 	return props
 }
 
-func marshalTalonValue(i interface{}) interface{} {
+func marshalTalonValue(i interface{}) (interface{}, error) {
+	if tm, ok := i.(Marshaler); ok {
+		bs, err := tm.MarshalTalon()
+		if err != nil {
+			return nil, err
+		}
+
+		return string(bs), nil
+	}
+
 	val := reflect.ValueOf(i)
 	switch val.Kind() {
 	case reflect.Complex64, reflect.Complex128:
 		c128 := val.Complex()
-		return fmt.Sprintf("%f+%fi", real(c128), imag(c128))
+		c := Complex(c128)
+		bs, err := c.MarshalTalon()
+		if err != nil {
+			return nil, err
+		}
+
+		return string(bs), nil
 	}
 
 	if t, ok := i.(time.Time); ok {
-		tt := types.NewTime(t)
+		tt := NewTime(t)
 		bs, err := tt.MarshalTalon()
 		if err != nil {
-			return ""
+			return nil, err
 		}
 
-		return string(bs)
+		return string(bs), nil
 	}
 
-	return i
+	return i, nil
 }

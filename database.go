@@ -2,6 +2,8 @@
 
 package talon
 
+import "github.com/bbuck/talon/types"
+
 // DB represents a talon connection to a Neo4j database using Neo4j bolt behind
 // the scenes.
 type DB struct{}
@@ -14,4 +16,12 @@ type ConnectOptions struct{}
 // a connection to a Neo4j database.
 func Connect(co ConnectOptions) (*DB, error) {
 	return &DB{}, nil
+}
+
+func (d *DB) Cypher(q string, p types.Properties) *Query {
+	return &Query{
+		db:         d,
+		rawCypher:  q,
+		properties: p,
+	}
 }

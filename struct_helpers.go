@@ -1,12 +1,16 @@
 package talon
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/bbuck/talon/types"
+)
 
 // convert an arbitrary struct into properties
-func structToMap(i interface{}) Properties {
+func structToMap(i interface{}) types.Properties {
 	value := reflect.ValueOf(i)
 	typ := value.Type()
-	props := make(Properties)
+	props := make(types.Properties)
 	if value.Kind() != reflect.Struct {
 		return props
 	}
