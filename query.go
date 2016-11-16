@@ -8,3 +8,8 @@ type Query struct {
 	rawCypher  string
 	properties types.Properties
 }
+
+// Run executes a fetch query, expecting rows to be returned.
+func (q *Query) Run() (interface{}, error) {
+	return nil, nil
+}
