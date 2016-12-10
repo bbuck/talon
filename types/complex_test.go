@@ -42,4 +42,51 @@ var _ = Describe("Complex", func() {
 			})
 		})
 	})
+
+	Describe("MarshalTalon", func() {
+		var (
+			c        Complex
+			result   string
+			err      error
+			bs       []byte
+			expected string
+		)
+
+		BeforeEach(func() {
+			c = Complex(1 + 2i)
+			bs, err = c.MarshalTalon()
+			result = string(bs)
+			expected = "1.000000 + 2.000000i"
+		})
+
+		It("doesn't fail", func() {
+			Ω(err).Should(BeNil())
+		})
+
+		It("produces the correct string", func() {
+			Ω(result).Should(Equal(expected))
+		})
+	})
+
+	Describe("UnmarshalTalon", func() {
+		var (
+			c        Complex
+			input    = []byte("1.000000 + 2.000000i")
+			err      error
+			expected complex128 = 1 + 2i
+		)
+
+		BeforeEach(func() {
+			c = Complex(1 + 2i)
+			err = c.UnmarshalTalon(input)
+		})
+
+		It("doesn't fail", func() {
+			Ω(err).Should(BeNil())
+		})
+
+		It("produces the correct complex value", func() {
+			Ω(complex128(c)).Should(Equal(expected))
+		})
+	})
 })

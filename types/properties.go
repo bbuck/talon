@@ -4,28 +4,24 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"sort"
 	"time"
 )
 
-const divider = "$$"
-
 // Properties is a map[string]interface{} wrapper with a special string function
 // designed to produce properties for Neo4j.
 type Properties map[string]interface{}
 
-// String brings Properties inline with fmt.Stringer and produced a Neo4j
-// compatible propety map
+// String brings Properties inline with fmt.Stringer
 func (p Properties) String() string {
-	return p.StringWithPostfixedProperties("")
+	return fmt.Sprintf("%+v", map[string]interface{}(p))
 }
 
-// StringWithPostfixedProperties returns the same property string as String
-// except that all inject property names include the divider ($$) and a postfix
-// value. This aids in sorting duplicates. So a node named 'A' would produce
-// a key of 'one' as 'one$$node_a'.
-func (p Properties) StringWithPostfixedProperties(postfix string) string {
+// QueryString produces a string of key: {key} mappings based on the structure of
+// this object for use in queries.
+func (p Properties) QueryString() string {
 	if len(p) == 0 {
 		return ""
 	}
@@ -38,10 +34,6 @@ func (p Properties) StringWithPostfixedProperties(postfix string) string {
 		buf.WriteString(key)
 		buf.WriteString(": {")
 		buf.WriteString(key)
-		if len(postfix) > 0 {
-			buf.WriteString(divider)
-			buf.WriteString(postfix)
-		}
 		buf.WriteRune('}')
 		if i != len(keys)-1 {
 			buf.WriteString(", ")
@@ -50,26 +42,6 @@ func (p Properties) StringWithPostfixedProperties(postfix string) string {
 	buf.WriteRune('}')
 
 	return buf.String()
-}
-
-// ForQuery returns the same key/value pairs just with a postfix applied to the
-// keys as specificed. This is used when building strings and passing data
-// through the driver to prevent property collisions throughout the query.
-func (p Properties) ForQuery(postfix string) (Properties, error) {
-	qprops := make(map[string]interface{})
-	for key, val := range p {
-		newKey := key
-		if len(postfix) > 0 {
-			newKey = key + divider + postfix
-		}
-		val, err := marshalTalonValue(val)
-		if err != nil {
-			return nil, err
-		}
-		qprops[newKey] = val
-	}
-
-	return qprops, nil
 }
 
 // Keys returns an array of string values representing the keys in the map.

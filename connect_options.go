@@ -3,6 +3,8 @@ package talon
 import (
 	"bytes"
 	"fmt"
+
+	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 )
 
 // ConnectOptions allows customiztaino of how to connect to a Neo4j database
@@ -12,6 +14,7 @@ type ConnectOptions struct {
 	Pass string
 	Host string
 	Port uint16
+	Pool uint16
 }
 
 // URL takes the options set for connection and generates a bolt connection
@@ -34,4 +37,24 @@ func (co *ConnectOptions) URL() string {
 	}
 
 	return buf.String()
+}
+
+// Connect will take the provided connection options and attempt to establish
+// a connection to a Neo4j database.
+func (co ConnectOptions) Connect() (db *DB, err error) {
+	db = new(DB)
+	if co.Pool == 0 {
+		db.driver = &driver{
+			Driver:         bolt.NewDriver(),
+			connectOptions: co,
+		}
+	} else {
+		var pool bolt.DriverPool
+		pool, err = bolt.NewDriverPool(co.URL(), int(co.Pool))
+		db.driver = &driverPool{
+			pool: pool,
+		}
+	}
+
+	return
 }
