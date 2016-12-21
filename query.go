@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon
 
 import (
@@ -23,7 +25,7 @@ func (q *Query) ToCypher() string {
 }
 
 // Query executes a fetch query, expecting rows to be returned.
-func (q *Query) Query() (bolt.Rows, error) {
+func (q *Query) Query() (*Rows, error) {
 	conn, stmt, err := q.getStatement()
 	if err != nil {
 		return nil, err
@@ -36,7 +38,9 @@ func (q *Query) Query() (bolt.Rows, error) {
 		return nil, err
 	}
 
-	return rows, nil
+	r := wrapBoltRows(rows)
+
+	return r, nil
 }
 
 // Exec runs a query that doesn't expect rows to be returned.

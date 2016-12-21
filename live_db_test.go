@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon_test
 
 import (
@@ -92,12 +94,12 @@ var _ = Describe("LiveDb", func() {
 				It("allows creating, accessing and deleting", func() {
 					By("creating a node")
 
-					result, err := db.Cypher(`CREATE (:TalonSingleNodeTest {hello: "world"})`).Exec()
+					result, err := db.Cypher(`CREATE (:TalonSingleNodeTest {hello: "world", one: true, two: 2, three: 3.3})`).Exec()
 
 					Ω(err).Should(BeNil())
 					Ω(result.Stats.LabelsAdded).Should(Equal(int64(1)))
 					Ω(result.Stats.NodesCreated).Should(Equal(int64(1)))
-					Ω(result.Stats.PropertiesSet).Should(Equal(int64(1)))
+					Ω(result.Stats.PropertiesSet).Should(Equal(int64(4)))
 
 					By("accessing the node")
 
@@ -106,16 +108,23 @@ var _ = Describe("LiveDb", func() {
 
 					Ω(err).Should(BeNil())
 
-					debug("rows.Metadata()", rows.Metadata())
-					a, b, c := rows.NextNeo()
+					// debug("rows.Metadata()", rows.Metadata())
+					debug("rows.Metadata", rows.Metadata)
+					// a, b, c := rows.NextNeo()
+					a, b := rows.Next()
 					debug("a", a)
+					node := a[0].(*Node)
+					for key, val := range node.Properties {
+						fmt.Printf("%s => (%t) %v\n", key, val, val)
+					}
 					debug("b", b)
-					debug("c", c)
+					// debug("c", c)
 
-					a, b, c = rows.NextNeo()
-					debug("a2", a)
-					debug("b2", b)
-					debug("c2", c)
+					// a, b, c = rows.NextNeo()
+					a2, b2 := rows.Next()
+					debug("a2", a2)
+					debug("b2", b2)
+					// debug("c2", c)
 
 					// TODO: Delete nodes
 				})

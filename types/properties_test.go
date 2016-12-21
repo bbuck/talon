@@ -1,8 +1,8 @@
+// Copyright (c) 2016 Brandon Buck
+
 package types_test
 
 import (
-	"time"
-
 	. "github.com/bbuck/talon/types"
 
 	. "github.com/onsi/ginkgo"
@@ -16,10 +16,10 @@ var _ = Describe("Properties", func() {
 		p = make(Properties)
 	})
 
-	Describe("String", func() {
+	Describe("QueryString", func() {
 		Context("when the property map is empty", func() {
 			It("is just an empty string", func() {
-				Ω(p.String()).Should(Equal(""))
+				Ω(p.QueryString()).Should(Equal(""))
 			})
 		})
 
@@ -29,7 +29,7 @@ var _ = Describe("Properties", func() {
 			})
 
 			It("is a key-insertion pairing", func() {
-				Ω(p.String()).Should(Equal(`{one: {one}}`))
+				Ω(p.QueryString()).Should(Equal(`{one: {one}}`))
 			})
 		})
 
@@ -40,7 +40,7 @@ var _ = Describe("Properties", func() {
 			})
 
 			It("is a key-insertion pairing", func() {
-				Ω(p.String()).Should(Equal(`{one: {one}, three: {three}}`))
+				Ω(p.QueryString()).Should(Equal(`{one: {one}, three: {three}}`))
 			})
 		})
 
@@ -53,121 +53,7 @@ var _ = Describe("Properties", func() {
 			})
 
 			It("is a key-insertion pairing", func() {
-				Ω(p.String()).Should(Equal(`{one: {one}}`))
-			})
-		})
-	})
-
-	Describe("StringWithPostfixedProperties", func() {
-		var postfix = "node_a"
-
-		Context("when the property map is empty", func() {
-			It("is just an empty string", func() {
-				Ω(p.StringWithPostfixedProperties(postfix)).Should(Equal(""))
-			})
-		})
-
-		Context("with a single property", func() {
-			BeforeEach(func() {
-				p["one"] = "two"
-			})
-
-			It("is a key-insertion pairing", func() {
-				Ω(p.StringWithPostfixedProperties(postfix)).Should(Equal(`{one: {one$$node_a}}`))
-			})
-		})
-
-		Context("with more than one property", func() {
-			BeforeEach(func() {
-				p["one"] = "two"
-				p["three"] = "four"
-			})
-
-			It("is a key-insertion pairing", func() {
-				Ω(p.StringWithPostfixedProperties(postfix)).Should(Equal(`{one: {one$$node_a}, three: {three$$node_a}}`))
-			})
-		})
-
-		Context("with conflicting keys during merge", func() {
-			BeforeEach(func() {
-				b := make(Properties)
-				b["one"] = "three"
-				p["one"] = "two"
-				p = p.Merge(b)
-			})
-
-			It("is a key-insertion pairing", func() {
-				Ω(p.StringWithPostfixedProperties(postfix)).Should(Equal(`{one: {one$$node_a}}`))
-			})
-		})
-	})
-
-	Describe("ForQuery", func() {
-		var (
-			pfed         Properties
-			err          error
-			postfix      = "node_a"
-			val          string
-			newOk, oldOk bool
-		)
-
-		Context("basic use", func() {
-			BeforeEach(func() {
-				p["one"] = "two"
-				pfed, err = p.ForQuery(postfix)
-				var ival interface{}
-				ival, newOk = pfed["one$$node_a"]
-				val = ival.(string)
-				_, oldOk = pfed["one"]
-			})
-
-			It("does not fail", func() {
-				Ω(err).Should(BeNil())
-			})
-
-			It("adds postfix to property names", func() {
-				Ω(newOk).Should(BeTrue())
-			})
-
-			It("returns the expected value from postfixed key", func() {
-				Ω(val).Should(Equal("two"))
-			})
-
-			It("does not carry over standard keys", func() {
-				Ω(oldOk).Should(BeFalse())
-			})
-		})
-
-		Context("with marshaled types", func() {
-			var (
-				t      = time.Now()
-				ft     = t.Format(DefaultTimeFormat)
-				typeOk bool
-				err    error
-			)
-
-			BeforeEach(func() {
-				p["time"] = t
-				pfed, err = p.ForQuery(postfix)
-				var ival interface{}
-				ival, newOk = pfed["time$$node_a"]
-				val, typeOk = ival.(string)
-			})
-
-			It("does not fail", func() {
-				Ω(err).Should(BeNil())
-			})
-
-			It("adds postfix to the key", func() {
-				Ω(newOk).Should(BeTrue())
-			})
-
-			It("converted time.Time to string", func() {
-				Ω(typeOk).Should(BeTrue())
-			})
-
-			It("marshaled the time correctly", func() {
-				Ω(val).Should(Equal(ft))
+				Ω(p.QueryString()).Should(Equal(`{one: {one}}`))
 			})
 		})
 	})

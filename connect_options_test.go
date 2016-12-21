@@ -1,3 +1,5 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon_test
 
 import (

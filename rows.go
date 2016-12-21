@@ -1,6 +1,11 @@
+// Copyright (c) 2016 Brandon Buck
+
 package talon
 
-import bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
+import (
+	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
+	boltGraph "github.com/johnnadratowski/golang-neo4j-bolt-driver/structures/graph"
+)
 
 // &{
 //   metadata: map[
@@ -14,20 +19,52 @@ import bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 //   closeStatement: true
 // }
 
+// Metadata contains details about the rows response, such as the field names
+// from the query.
+type Metadata struct {
+	Fields []string
+}
+
+func metadataFromBoltRows(rows bolt.Rows) *Metadata {
+	md := rows.Metadata()
+	mdFields := md["fields"].([]interface{})
+	fields := make([]string, len(mdFields))
+	for i := 0; i < len(fields); i++ {
+		fields[i] = mdFields[i].(string)
+	}
+
+	return &Metadata{
+		Fields: fields,
+	}
+}
+
+type Row []Entity
+
 type Rows struct {
-	Columns []string
+	Metadata *Metadata
+	Columns  []string
 
 	boltRows bolt.Rows
 }
 
-type Row struct{}
+func wrapBoltRows(rs bolt.Rows) *Rows {
+	return &Rows{
+		Metadata: metadataFromBoltRows(rs),
+		boltRows: rs,
+	}
+}
 
 func (r *Rows) Close() {
 	r.boltRows.Close()
 }
 
-func (r *Rows) Next() (interface{}, error) {
-	row, _, err := r.boltRows.NextNeo()
+func (r *Rows) Next() (Row, error) {
+	boltRow, _, err := r.boltRows.NextNeo()
+	row := make(Row, len(boltRow))
+	for i := 0; i < len(row); i++ {
+		node := boltRow[i].(boltGraph.Node)
+		row[i] = wrapBoltNode(node)
+	}
 
 	return row, err
 }
