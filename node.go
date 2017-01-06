@@ -21,7 +21,7 @@ func wrapBoltNode(n bolt.Node) *Node {
 	}
 }
 
-func (n *Node) Type() EntityType {
+func (*Node) Type() EntityType {
 	return EntityNode
 }
 

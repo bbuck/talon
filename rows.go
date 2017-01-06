@@ -3,6 +3,8 @@
 package talon
 
 import (
+	"errors"
+
 	bolt "github.com/johnnadratowski/golang-neo4j-bolt-driver"
 	boltGraph "github.com/johnnadratowski/golang-neo4j-bolt-driver/structures/graph"
 )
@@ -62,8 +64,14 @@ func (r *Rows) Next() (Row, error) {
 	boltRow, _, err := r.boltRows.NextNeo()
 	row := make(Row, len(boltRow))
 	for i := 0; i < len(row); i++ {
-		node := boltRow[i].(boltGraph.Node)
-		row[i] = wrapBoltNode(node)
+		if node, ok := boltRow[i].(boltGraph.Node); ok {
+			row[i] = wrapBoltNode(node)
+		} else if rel, ok := boltRow[i].(boltGraph.Relationship); ok {
+			row[i] = wrapBoltRelationship(rel)
+		} else {
+			// TODO: Remove
+			panic(errors.New("this doesn't happen!!!"))
+		}
 	}
 
 	return row, err
