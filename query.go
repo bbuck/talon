@@ -16,8 +16,6 @@ type Query struct {
 	properties types.Properties
 }
 
-// ToCypher takes the query object and generates the necessary cypher query
-// string that it sends to Neo
 func (q *Query) ToCypher() string {
 	if q.rawCypher != "" {
 		return q.rawCypher
@@ -83,8 +81,6 @@ func (q *Query) Exec2() (interface{}, error) {
 
 	return result, nil
 }
-
-// private methods follow
 
 func (q *Query) getStatement() (bolt.Conn, bolt.Stmt, error) {
 	conn, err := q.db.conn()
